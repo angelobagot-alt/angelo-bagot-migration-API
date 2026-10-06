@@ -273,8 +273,13 @@ class Database {
                 throw new PDOException('DB_SSL_CA is configured, but the PDO MySQL SSL option is unavailable.');
             }
             $ssl_ca = str_replace('\\', '/', $database_config['ssl_ca']);
-            $dsn .= ";sslmode=verify-ca;sslrootcert='{$ssl_ca}'";
+            if (!is_file($ssl_ca) || !is_readable($ssl_ca)) {
+                throw new PDOException('The DB_SSL_CA certificate file is missing or unreadable.');
+            }
             $options[constant('PDO::MYSQL_ATTR_SSL_CA')] = $database_config['ssl_ca'];
+            if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
+                $options[constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')] = true;
+            }
         }
 
         try {

@@ -66,7 +66,7 @@ $database['main'] = array(
     'database'	=> getenv('DB_NAME') ?: '',
     'charset'	=> getenv('DB_CHARSET') ?: '',
     'dbprefix'	=> getenv('DB_PREFIX') ?: '',
-    'ssl_ca'    => getenv('DB_SSL_CA') ?: '',
+    'ssl_ca'    => getenv('DB_SSL_CA') ?: 'database/aiven-ca.pem',
     // Optional for SQLite
     'path'      => ''
 );
@@ -75,7 +75,17 @@ if (!empty($database['main']['ssl_ca'])) {
     $ca_path = $database['main']['ssl_ca'];
     $is_absolute = preg_match('/^(?:[A-Za-z]:[\\\\\/]|[\\\\\/]{2})/', $ca_path);
     if (!$is_absolute) {
-        $database['main']['ssl_ca'] = ROOT_DIR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($ca_path, '/\\'));
+        $relative_ca_path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($ca_path, '/\\'));
+        $resolved_ca_path = ROOT_DIR . $relative_ca_path;
+        // Older local/Render settings may still point to the ignored runtime
+        // copy. The committed CA lives in database/ for deployment builds.
+        if (!is_file($resolved_ca_path) && basename($relative_ca_path) === 'aiven-ca.pem') {
+            $deployed_ca_path = ROOT_DIR . 'database' . DIRECTORY_SEPARATOR . 'aiven-ca.pem';
+            if (is_file($deployed_ca_path)) {
+                $resolved_ca_path = $deployed_ca_path;
+            }
+        }
+        $database['main']['ssl_ca'] = $resolved_ca_path;
     }
 }
 

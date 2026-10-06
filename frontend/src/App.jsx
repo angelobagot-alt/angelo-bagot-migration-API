@@ -8,7 +8,7 @@ async function request(path, { token, ...options } = {}) {
   const responseText = await response.text()
   let data
   try { data = responseText ? JSON.parse(responseText) : {} } catch {
-    throw new Error('The API returned an unexpected error page. Check the API server logs.')
+    throw new Error(`The API returned an HTML error (HTTP ${response.status}). Check the Render API logs and its DB_* and JWT_SECRET/REFRESH_TOKEN_KEY environment variables.`)
   }
   if (!response.ok) {
     const fallback = response.status >= 500
