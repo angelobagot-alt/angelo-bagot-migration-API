@@ -122,7 +122,7 @@ class Product extends Controller
         $data['updated_at'] = date('Y-m-d H:i:s');
         $updated = $this->db->table('products')->where('id', $id)->update($data);
 
-        if ($updated === false || $updated === 0) {
+        if ($updated === false) {
             $this->api->respond_error('Unable to update product.', 500);
         }
 
