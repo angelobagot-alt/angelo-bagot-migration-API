@@ -269,16 +269,26 @@ class Database {
         );
 
         if ($driver === 'mysql' && !empty($database_config['ssl_ca'])) {
-            if (!defined('PDO::MYSQL_ATTR_SSL_CA')) {
-                throw new PDOException('DB_SSL_CA is configured, but the PDO MySQL SSL option is unavailable.');
-            }
             $ssl_ca = str_replace('\\', '/', $database_config['ssl_ca']);
             if (!is_file($ssl_ca) || !is_readable($ssl_ca)) {
                 throw new PDOException('The DB_SSL_CA certificate file is missing or unreadable.');
             }
-            $options[constant('PDO::MYSQL_ATTR_SSL_CA')] = $database_config['ssl_ca'];
-            if (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')) {
-                $options[constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT')] = true;
+
+            // PHP 8.5 exposes driver options on Pdo\\Mysql. Older versions
+            // expose the same options as PDO::MYSQL_ATTR_* constants.
+            $ssl_ca_attribute = defined('Pdo\\Mysql::ATTR_SSL_CA')
+                ? constant('Pdo\\Mysql::ATTR_SSL_CA')
+                : (defined('PDO::MYSQL_ATTR_SSL_CA') ? constant('PDO::MYSQL_ATTR_SSL_CA') : null);
+            if ($ssl_ca_attribute === null) {
+                throw new PDOException('DB_SSL_CA is configured, but the PDO MySQL SSL option is unavailable.');
+            }
+            $options[$ssl_ca_attribute] = $database_config['ssl_ca'];
+
+            $verify_attribute = defined('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')
+                ? constant('Pdo\\Mysql::ATTR_SSL_VERIFY_SERVER_CERT')
+                : (defined('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') ? constant('PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT') : null);
+            if ($verify_attribute !== null) {
+                $options[$verify_attribute] = true;
             }
         }
 
