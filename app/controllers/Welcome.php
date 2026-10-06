@@ -3,6 +3,16 @@ defined('PREVENT_DIRECT_ACCESS') OR exit('No direct script access allowed');
 
 class Welcome extends Controller {
 	public function index() {
+		// In the Render Docker image, the Vite build is copied into public/.
+		// Serve it from the framework route as well, so / opens React even when
+		// Apache selects index.php before index.html as its directory index.
+		$react_entry = dirname(__DIR__, 2) . '/public/index.html';
+		if (is_file($react_entry)) {
+			header('Content-Type: text/html; charset=utf-8');
+			readfile($react_entry);
+			return;
+		}
+
 		header('Content-Type: text/html; charset=utf-8');
 		$frontend_url = getenv('FRONTEND_URL') ?: '';
 		$frontend_link = $frontend_url !== ''
