@@ -102,6 +102,36 @@ class Controller
 		$this->before_action();
 	}
 
+	public function database($dbname = NULL)
+	{
+		return $this->call->database($dbname);
+	}
+
+	public function model($class, $object_name = null)
+	{
+		return $this->call->model($class, $object_name);
+	}
+
+	public function view($view_file, $data = NULL)
+	{
+		return $this->call->view($view_file, $data);
+	}
+
+	public function helper($helper)
+	{
+		return $this->call->helper($helper);
+	}
+
+	public function library($classes, $params = NULL)
+	{
+		return $this->call->library($classes, $params);
+	}
+
+	public function dbforge($group = 'default')
+	{
+		return $this->call->dbforge($group);
+	}
+
 	/**
      * Called before the controller action.
      * Used to perform logic that needs to happen before each controller action.

@@ -66,8 +66,17 @@ $database['main'] = array(
     'database'	=> getenv('DB_NAME') ?: '',
     'charset'	=> getenv('DB_CHARSET') ?: '',
     'dbprefix'	=> getenv('DB_PREFIX') ?: '',
+    'ssl_ca'    => getenv('DB_SSL_CA') ?: '',
     // Optional for SQLite
     'path'      => ''
 );
+
+if (!empty($database['main']['ssl_ca'])) {
+    $ca_path = $database['main']['ssl_ca'];
+    $is_absolute = preg_match('/^(?:[A-Za-z]:[\\\\\/]|[\\\\\/]{2})/', $ca_path);
+    if (!$is_absolute) {
+        $database['main']['ssl_ca'] = ROOT_DIR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, ltrim($ca_path, '/\\'));
+    }
+}
 
 ?>

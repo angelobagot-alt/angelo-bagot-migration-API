@@ -231,18 +231,29 @@ class Api
     public function body()
     {
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        $rawInput = file_get_contents('php://input');
 
-        if (stripos($contentType, 'application/json') !== false) {
-            $input = json_decode(file_get_contents('php://input'), true);
-            return is_array($input) ? $this->sanitize_input($input) : [];
+        if (is_string($rawInput) && $rawInput !== '') {
+            $json = json_decode($rawInput, true);
+            if (is_array($json)) {
+                return $this->sanitize_input($json);
+            }
+
+            if (stripos($contentType, 'application/json') !== false) {
+                return [];
+            }
+
+            parse_str($rawInput, $formData);
+            if (!empty($formData)) {
+                return $this->sanitize_input($formData);
+            }
         }
 
         if ($_POST) {
             return $this->sanitize_input($_POST);
         }
 
-        parse_str(file_get_contents('php://input'), $formData);
-        return $this->sanitize_input($formData ?? []);
+        return [];
     }
 
     /**
@@ -263,8 +274,14 @@ class Api
      */
     private function sanitize_input($data)
     {
-        array_walk_recursive($data, function(&$value) {
+        array_walk_recursive($data, function(&$value, $key) {
             if (is_string($value)) {
+                // Passwords must be verified exactly as entered. Escaping them
+                // here changes their bytes before password_hash/password_verify.
+                if (is_string($key) && preg_match('/password/i', $key)) {
+                    return;
+                }
+
                 $value = trim(htmlspecialchars($value, ENT_QUOTES, 'UTF-8'));
             }
         });
@@ -376,6 +393,7 @@ class Api
      */
     public function respond($data, $code = 200)
     {
+        header('Content-Type: application/json; charset=utf-8');
         http_response_code($code);
         echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         exit;
@@ -506,7 +524,21 @@ class Api
 
         if (!$header && function_exists('apache_request_headers')) {
             $headers = apache_request_headers();
-            $header = $headers['Authorization'] ?? '';
+            foreach ($headers as $name => $value) {
+                if (strcasecmp($name, 'Authorization') === 0) {
+                    $header = $value;
+                    break;
+                }
+            }
+        }
+
+        if (!$header && function_exists('getallheaders')) {
+            foreach (getallheaders() ?: [] as $name => $value) {
+                if (strcasecmp($name, 'Authorization') === 0) {
+                    $header = $value;
+                    break;
+                }
+            }
         }
 
         return preg_match('/Bearer\s(\S+)/i', $header, $matches) ? $matches[1] : null;

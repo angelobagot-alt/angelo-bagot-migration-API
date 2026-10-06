@@ -268,6 +268,15 @@ class Database {
             PDO::ATTR_EMULATE_PREPARES   => false,
         );
 
+        if ($driver === 'mysql' && !empty($database_config['ssl_ca'])) {
+            if (!defined('PDO::MYSQL_ATTR_SSL_CA')) {
+                throw new PDOException('DB_SSL_CA is configured, but the PDO MySQL SSL option is unavailable.');
+            }
+            $ssl_ca = str_replace('\\', '/', $database_config['ssl_ca']);
+            $dsn .= ";sslmode=verify-ca;sslrootcert='{$ssl_ca}'";
+            $options[constant('PDO::MYSQL_ATTR_SSL_CA')] = $database_config['ssl_ca'];
+        }
+
         try {
             $this->db = new PDO($dsn, $username, $password, $options);
             $this->driver = $this->db->getAttribute(PDO::ATTR_DRIVER_NAME);
