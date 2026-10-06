@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-const API = (import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? '' : 'http://localhost/LavaLust')).replace(/\/$/, '')
+const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
 const read = (key, fallback = '') => { const value = localStorage.getItem(key); if (value === null) return fallback; try { return JSON.parse(value) } catch { return value } }
 
 async function request(path, { token, ...options } = {}) {

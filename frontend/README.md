@@ -1,6 +1,6 @@
 # Stockroom React client
 
-This React/Vite client uses the LavaLust API for authentication and product data. It never connects directly to MySQL. The API root shows a status page and links to the React app when `FRONTEND_URL` is set on the API service. Set `VITE_API_URL` on the React deployment to the API's base URL.
+This React/Vite client uses the LavaLust API for authentication and product data. It never connects directly to MySQL. The API Docker image builds this interface into its public web root, so the API Render URL opens the React app and `/api/...` requests remain on the same domain. The separately deployed Static Site can set `VITE_API_URL` to the API base URL.
 
 ## Run locally
 
