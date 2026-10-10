@@ -140,12 +140,16 @@ $config['users_table'] = 'users';
 | Access-Control-Allow-Origin
 |--------------------------------------------------------------------------
 |
-| Access-Control-Allow-Origin - change this to your domain if
-| already deployed. '*' allows any website to call your API from
-| a browser, so set your real domain in production.
+| Set CORS_ALLOWED_ORIGIN to your frontend's exact origin in production.
+| Multiple comma-separated origins are supported.
 |
 */
-$config['allow_origin'] = '*';
+$default_origin = (getenv('APP_ENV') ?: 'development') === 'production'
+    ? 'https://angelo-bagot-react-api.onrender.com'
+    : 'http://127.0.0.1:5173';
+$configured_origins = trim((string) (getenv('CORS_ALLOWED_ORIGIN') ?: $default_origin));
+$allowed_origins = array_values(array_unique(array_filter(array_map('trim', explode(',', $configured_origins)))));
+$config['allow_origin'] = $allowed_origins ?: [$default_origin];
 
 /*
 |--------------------------------------------------------------------------

@@ -68,6 +68,22 @@ $config['environment'] = getenv('APP_ENV') ?: 'development';
 
 /*
 |--------------------------------------------------------------------------
+| Browser API origins
+|--------------------------------------------------------------------------
+|
+| The router handles OPTIONS preflight requests before loading api.php, so
+| keep the CORS allowlist available in the base config as well.
+|
+*/
+$default_origin = (getenv('APP_ENV') ?: 'development') === 'production'
+	? 'https://angelo-bagot-react-api.onrender.com'
+	: 'http://127.0.0.1:5173';
+$configured_origins = trim((string) (getenv('CORS_ALLOWED_ORIGIN') ?: $default_origin));
+$allowed_origins = array_values(array_unique(array_filter(array_map('trim', explode(',', $configured_origins)))));
+$config['allow_origin'] = $allowed_origins ?: [$default_origin];
+
+/*
+|--------------------------------------------------------------------------
 | Default Timezone
 |--------------------------------------------------------------------------
 | The default timezone will be used by the date functions of PHP.
