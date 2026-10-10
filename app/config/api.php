@@ -144,12 +144,15 @@ $config['users_table'] = 'users';
 | Multiple comma-separated origins are supported.
 |
 */
-$default_origin = (getenv('APP_ENV') ?: 'development') === 'production'
-    ? 'https://angelo-bagot-react-api.onrender.com'
-    : 'http://127.0.0.1:5173';
-$configured_origins = trim((string) (getenv('CORS_ALLOWED_ORIGIN') ?: $default_origin));
-$allowed_origins = array_values(array_unique(array_filter(array_map('trim', explode(',', $configured_origins)))));
-$config['allow_origin'] = $allowed_origins ?: [$default_origin];
+$default_origins = [
+    'http://127.0.0.1:5173',
+    'https://angelo-bagot-react-api.onrender.com',
+];
+$configured_origins = trim((string) (getenv('CORS_ALLOWED_ORIGIN') ?: ''));
+$configured_origins = $configured_origins === ''
+    ? []
+    : array_filter(array_map('trim', explode(',', $configured_origins)));
+$config['allow_origin'] = array_values(array_unique(array_merge($default_origins, $configured_origins)));
 
 /*
 |--------------------------------------------------------------------------
